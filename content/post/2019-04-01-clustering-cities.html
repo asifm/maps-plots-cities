@@ -8,17 +8,17 @@ categories: [cities, clustering, maps]
 meta: yes
 ---
 
-<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
-<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
-<link href="/rmarkdown-libs/leaflet/leaflet.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/leaflet/leaflet.js"></script>
-<link href="/rmarkdown-libs/leafletfix/leafletfix.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/Proj4Leaflet/proj4-compressed.js"></script>
-<script src="/rmarkdown-libs/Proj4Leaflet/proj4leaflet.js"></script>
-<link href="/rmarkdown-libs/rstudio_leaflet/rstudio_leaflet.css" rel="stylesheet" />
-<script src="/rmarkdown-libs/leaflet-binding/leaflet.js"></script>
-<script src="/rmarkdown-libs/leaflet-providers/leaflet-providers.js"></script>
-<script src="/rmarkdown-libs/leaflet-providers-plugin/leaflet-providers-plugin.js"></script>
+<script src="/rmarkdown-libs/htmlwidgets-1.3/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery-1.12.4/jquery.min.js"></script>
+<link href="/rmarkdown-libs/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/leaflet-1.3.1/leaflet.js"></script>
+<link href="/rmarkdown-libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/Proj4Leaflet-1.0.1/proj4-compressed.js"></script>
+<script src="/rmarkdown-libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+<link href="/rmarkdown-libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/leaflet-binding-2.0.2/leaflet.js"></script>
+<script src="/rmarkdown-libs/leaflet-providers-1.1.17/leaflet-providers.js"></script>
+<script src="/rmarkdown-libs/leaflet-providers-plugin-2.0.2/leaflet-providers-plugin.js"></script>
 
 
 <div id="this-is-a-test." class="section level1">
@@ -31,7 +31,7 @@ meta: yes
 <!-- - Should the differences be taken into account when we consider city policies? If so, how?  -->
 <div id="the-data" class="section level2">
 <h2>The Data</h2>
-<p>I’ll use here a selection of data from the most recent (2013–17) version of <em>American Community Survey</em> (ACS), the best source of socioeconomic data about US residents. My selected data comprises 382 observations, each a metropolitan statistical area,<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> and about 180 variables<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> covering wide-ranging socioeconomic attributes of the city residents.</p>
+<p>I’ll use here a selection of data from the most recent (2013–17) version of <em>American Community Survey</em> (ACS), the best source of socioeconomic data about US residents. My selected data comprises 382 observations, each a metropolitan statistical area,<label for="tufte-sn-1" class="margin-toggle sidenote-number"></label><input type="checkbox" id="tufte-sn-1" class="margin-toggle"><span class="sidenote"> <a href="https://www.census.gov/programs-surveys/metro-micro/about.html">About metropolitan statistical areas</a></span> and about 180 variables<label for="tufte-sn-2" class="margin-toggle sidenote-number"></label><input type="checkbox" id="tufte-sn-2" class="margin-toggle"><span class="sidenote"> See full list of variables in this <a href="https://www.dropbox.com/s/1d35pt8jymp770n/ACS5YR2017_ProfileVariables_Selected.xlsx?dl=0">Excel file</a>.</span> covering wide-ranging socioeconomic attributes of the city residents.</p>
 <ul>
 <li>Income, inequality, poverty</li>
 <li>Educational attainment</li>
@@ -40,16 +40,9 @@ meta: yes
 <li>Immigration (both from other parts of the country and from abroad)</li>
 <li>Race/ethnicity, age, marital status</li>
 </ul>
-<p><label for="tufte-mn-" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-" class="margin-toggle"><span class="marginnote">If you look at the complete list, you may note that I’ve not been particularly selective. That is because <em>Principal Component Analysis</em> (PCA), soon to be performed on the data, will take care of the redundant and non-discriminant variables, doing so in a much more methodically sound way than human judgement can do at this stage.</span></p>
+<p><label for="tufte-mn-1" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-1" class="margin-toggle"><span class="marginnote">If you look at the complete list, you may note that I’ve not been particularly selective. That is because <em>Principal Component Analysis</em> (PCA), soon to be performed on the data, will take care of the redundant and non-discriminant variables, doing so in a much more methodically sound way than human judgement can do at this stage.</span></p>
 <p>Before proceeding, I’d like to note that there’s nothing definitve about clustering (this will be a recurring theme throughout the analysis). The result depends not only on the choice of variables and data but also on a host of parameters that guide the computations. Yet, the exercise and the resulting clusters can be uncommonly informative, if done right.</p>
 <!-- relative numbers, not absolute -->
 <p>I’ll first transform the data in a couple of ways, to improve the chances of yielding a grouping that’s consistent with the clustering objective.</p>
 </div>
-</div>
-<div class="footnotes">
-<hr />
-<ol>
-<li id="fn1"><p><a href="https://www.census.gov/programs-surveys/metro-micro/about.html">About metropolitan statistical areas</a><a href="#fnref1" class="footnote-back">↩</a></p></li>
-<li id="fn2"><p>See full list of variables in this <a href="https://www.dropbox.com/s/1d35pt8jymp770n/ACS5YR2017_ProfileVariables_Selected.xlsx?dl=0">Excel file</a>.<a href="#fnref2" class="footnote-back">↩</a></p></li>
-</ol>
 </div>
