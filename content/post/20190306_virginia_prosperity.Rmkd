@@ -1,0 +1,172 @@
+---
+title: "R Notebook"
+output:
+  tufte::tufte_html: default
+---
+
+# todo: make a Darden theme for ggplot2
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+options(tigris_use_cache = TRUE)
+```
+
+
+```{r}
+# Request median household income data
+virginia_inc <- get_acs(geography = "county", 
+                        variables = c(hhincome = "B19013_001"), 
+                        state = "VA") 
+```
+
+## Heading second level
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. 
+
+```{r, fig.width = 8, fig.height = 22}
+# Generate horizontal error bars with dots
+ggplot(virginia_inc, aes(x =estimate, y = reorder(NAME, estimate))) + 
+  geom_errorbarh(aes(xmin = estimate - moe, xmax = estimate + moe), alpha = 0.2, size = 1) + 
+  geom_point(color = "red", size = 2) + 
+  scale_x_continuous(breaks = c(25000, 50000, 75000, 100000, 125000), sec.axis = dup_axis())
+
+# !idea! Order by latitude. See correlation between income and distance-to-DC
+
+
+```
+
+```{r}
+ggplot(virginia_inc) +
+  geom_histogram(aes(x = estimate), alpha = 0.7,
+                 binwidth = 5000, boundary = 0.5, 
+                 fill = "#232d4b", color = "#999999") +
+  scale_x_continuous(breaks = c(20000, 40000, 60000, 80000, 100000, 120000, 140000), 
+                     minor_breaks = seq(0, 150000, 10000), limits = c(20000, NA))
+```
+
+
+```{r}
+all_county_income <- get_acs(geography = "county", 
+                        variables = c(hhincome = "B19013_001")) 
+```
+
+```{r}
+ggplot(all_county_income) +
+  geom_histogram(aes(x = estimate), alpha = 0.7,
+                 binwidth = 5000, boundary = 0.5, 
+                 fill = "#232d4b", color = "#999999") +
+  scale_x_continuous(breaks = c(20000, 40000, 60000, 80000, 100000, 120000, 140000), 
+                     minor_breaks = seq(0, 150000, 10000), limits = c(20000, NA))
+
+```
+
+```{r}
+all_msa_income <- get_acs(geography = "metropolitan statistical area/micropolitan statistical area", 
+                        variables = c(hhincome = "B19013_001")) 
+```
+
+```{r}
+all_metro_income <- all_msa_income %>%
+  filter(stringr::str_detect(string = NAME, "Metro")) 
+
+top50_metro_income <- all_msa_income %>%
+  filter(stringr::str_detect(string = NAME, "Metro")) %>% 
+  top_n(50, wt = estimate)
+
+bottom50_metro_income <- all_msa_income %>%
+  filter(stringr::str_detect(string = NAME, "Metro")) %>% 
+  top_n(-50, wt = estimate)
+
+```
+
+```{r, fig.width=10, fig.height=10}
+ggplot(bottom50_metro_income, aes(x =estimate, y = reorder(NAME, estimate))) + 
+  geom_errorbarh(aes(xmin = estimate - moe, xmax = estimate + moe), alpha = 0.2, size = 1) + 
+  geom_point(color = "red", size = 2) + 
+  scale_x_continuous(breaks = c(25000, 50000, 75000, 100000, 125000), sec.axis = dup_axis())
+
+```
+
+
+```{r, fig.width=10, fig.height=5}
+ggplot(all_metro_income, aes(x =estimate)) + 
+  geom_histogram() +
+  scale_x_continuous(breaks = c(25000, 50000, 75000, 100000, 125000), sec.axis = dup_axis())
+
+```
+
+
+
+```{r}
+all_metro_income %>% 
+  select(estimate) %>% 
+  summarise(mean(estimate), median(estimate), sd(estimate), count = n())
+```
+
+
+```{r}
+cville_income <- get_acs(geography = "tract", county = "Charlottesville city", state = "VA", 
+                         variables = "B19013_001", geometry = TRUE)
+```
+```{r}
+va_income <- get_acs(geography = "county", state = "VA", variables = "B19013_001", geometry = TRUE)
+```
+
+```{r}
+m <- mapview::mapview(va_income, zcol = "estimate")
+m@map
+```
+
+```{r}
+m <- mapview::mapview(cville_income, zcol = "estimate")
+m@map
+```
+
+Median home value code = B25077_001
+detail: https://www.census.gov/quickfacts/fact/note/US/HSG495217
+
+```{r}
+# v17 <- load_variables(2017, "acs5", cache = TRUE)
+
+median_home_value_VA <- get_acs(geography = "tract", state = "VA", variables = "B25077_001", geometry = TRUE)
+m <- mapview::mapview(median_home_value_VA, zcol = "estimate")
+m@map
+```
+
+
+```{r}
+ggplot(median_home_value_VA, aes(fill = estimate, color = estimate)) +
+  geom_sf() + 
+  scale_fill_viridis_c() +
+  scale_color_viridis_c()
+```
+
+gini = B19083_001
+```{r}
+gini_VA <- get_acs(geography = "county", state = "VA", variables = "B19083_001", geometry = TRUE)
+m <- mapview::mapview(gini_VA, zcol = "estimate")
+m@map
+
+```
+
+```{r}
+gini_states <- get_acs(geography = "state", variables = "B19083_001", geometry = TRUE)
+m <- mapview::mapview(gini_states, zcol = "estimate")
+m@map
+
+```
+```{r, fig.width=10, fig.height=22}
+gini_VA %>%
+  mutate(NAME = gsub(", Virginia", "", NAME)) %>%
+  ggplot(aes(x = estimate, y = reorder(NAME, estimate))) +
+  geom_errorbarh(aes(xmin = estimate - moe, xmax = estimate + moe)) +
+  geom_point(color = "red", size = 3) +
+  labs(title = "Inequality, VA Counties",
+       subtitle = "2013-2017 American Community Survey",
+       y = "",
+       x = "ACS estimate of Gini (bars represent margin of error)")
+```
+

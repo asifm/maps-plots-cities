@@ -1,0 +1,38 @@
+baseurl = "/"
+languageCode = "en-us"
+title = "Maps, Plots, and Cities"
+theme = "tuftesque"
+googleAnalytics = ""
+disqusShortname = ""
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
+
+[permalinks]
+    post = "/:year/:month/:day/:slug/"
+
+[[menu.main]]
+    name = "About"
+    url = "/about/"
+[[menu.main]]
+    name = "GitHub"
+    url = "https://github.com/asifm"
+
+[params]
+    description = "Data stories about cities and city-people."
+
+    # options for highlight.js (version, additional languages, and theme)
+    highlightjsVersion = "9.12.0"
+    highlightjsCDN = "//cdnjs.cloudflare.com/ajax/libs"
+    highlightjsLang = ["r", "yaml"]
+    highlightjsTheme = "github"
+
+    # path to the favicon, under "static"
+    favicon = "favicon.ico"
+
+[params.logo]
+    url = "https://res.cloudinary.com/asifm/image/upload/v1543121746/i-bargraph_nvtqgo.png"
+    width = 100
+    height = 100
+    alt = "Logo"
+
+[params.banner]
+     url = "https://res.cloudinary.com/asifm/image/upload/v1554101667/header-banner.jpg"

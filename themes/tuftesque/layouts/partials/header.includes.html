@@ -1,0 +1,24 @@
+<!-- Syntax highlighting -->
+<!-- {{ partial "highlight.html" . }} -->
+
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+
+<!-- Main CSS file based on Pure blog layout -->
+<link rel="stylesheet" href="{{ "/css/tuftesque.css" | absURL }}">
+
+{{ partial "backgroundColor.html" . }}
+
+
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"
+    integrity="sha256-aYTdUrn6Ow1DDgh5JTc3aDGnnju48y/1c8s1dgkYPQ8=" crossorigin="anonymous"></script>
+
+<script>
+    hljs.initHighlightingOnLoad();
+</script> -->
+
+<!-- Will load google analytics code if you have it. 
+     Open themes/tuftesque/layouts/partials/googleAnalytics.html to see how to work this 
+-->
+{{ partial "googleAnalytics.html" . }}
