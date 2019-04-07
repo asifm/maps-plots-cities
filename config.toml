@@ -1,4 +1,4 @@
-baseurl = "/"
+baseurl = "https://citee-data.netlify.com/"
 languageCode = "en-us"
 title = "Maps, Plots, and Cities"
 theme = "tuftesque"
@@ -17,7 +17,7 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     url = "https://github.com/asifm"
 
 [params]
-    description = "Data stories about cities and city-people."
+    description = "Data stories about cities and city people."
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.12.0"
