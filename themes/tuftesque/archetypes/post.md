@@ -1,9 +1,7 @@
-+++
-title = ''
-subtitle = ''
-date = ''
-author = 'Asif Mehedi'
-categories = []
-tags = []
-
-+++
+---
+title: 
+subtitle: 
+date: 
+author: Asif Mehedi
+tags: []
+---

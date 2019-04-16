@@ -20,7 +20,7 @@
     {{else}}
       {{ partial "content.header.html" . }}
       <p>{{ .Params.excerpt }}</p>
-      <p><a href="{{ .RelPermalink | relURL }}">Read On &rarr;</a></p>
+      <p class="readon"><a href="{{ .RelPermalink | relURL }}">Read On &rarr;</a></p>
       <hr>
     {{ end  }}
   {{ end }}
