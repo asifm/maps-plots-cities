@@ -6,5 +6,5 @@
 # =============================================
 # Setup
 # =============================================
-source(here::here('helpers/loadPackages.R'))
+source(here::here('helpers/setup.R'))
 

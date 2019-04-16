@@ -1,12 +1,20 @@
 # Census API key saved in .Renviron
-
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/dataWorld.R'))
 library(tidycensus)
-
-
 
 # ---------------------------------------------
 # Initialize some useful variables for easy reference
 # ---------------------------------------------
+test_variables <-
+  c("DP03_0022P",
+    "DP03_0021P",
+    "DP02_0086",
+    "DP02_0152P",
+    "DP02_0065P")
+# DP03_0022P: walk; DP03_0021P: public transport; DP02_0086: population, 
+# DP02_0152P: broadband internet
+# DP02_0065P: graduate or professional degree
 
 # latest_year variable is referenced in tidycensus and tigris functions
 # Remember to update this here when these packages update their latest year
@@ -53,8 +61,44 @@ lookup_variable <-
   }
 
 # =============================================
-# Geo Data
+# Geo Lists
 # =============================================
+
+#  ---------------------------------------------
+# List of counties
+# ---------------------------------------------
+# Get the list of counties in an MSA
+get_fips5_allcounties_frommsa <-
+  function(msa_name_regex, remove_state_fips = FALSE) {
+    # msa_regex should include state abbr (e.g. "Austin.*Tx")
+    counties_df <- counties_m1_df %>%
+      filter(str_detect(msa_name15, msa_name_regex)) %>%
+      select(county_code14)
+    
+    if (remove_state_fips == TRUE) {
+      # Remove first two digits (state fips)
+      counties_df <- counties_df %>%
+        mutate(county_code14 = str_sub(county_code14, 3))
+    }
+    counties_df[['county_code14']]
+  }
+
+# Get the list of counties that an urban area falls in (fully or partly)
+get_fips5_allcounties_fromurbanarea <-
+  function(urbanarea_name_regex) {
+    # urbanarea_name_regex should include state abbr (e.g. "Austin.*Tx")
+    counties_df <- counties_urbanarea_df %>%
+      filter(str_detect(ua_name12, urbanarea_name_regex)) %>%
+      select(county_code14)
+    
+    counties_df[['county_code14']]
+  }
+
+
+#  ---------------------------------------------
+# Boundary Data
+# ---------------------------------------------
+
 # Get map data as simple features
 # latest_year is defined earlier
 
@@ -116,46 +160,33 @@ get_sf_counties_fromstates <-
     counties_
   }
 
-
-# Get the list of counties in an MSA
-get_fips5_allcounties_frommsa <-
-  function(msa_name_regex, remove_state_fips = FALSE) {
-    # msa_regex should include state abbr (e.g. "Austin.*Tx")
-    counties_df <- counties_m1_df %>%
-      filter(str_detect(msa_name15, msa_name_regex)) %>%
-      select(county_code14)
-    
-    if (remove_state_fips == TRUE) {
-      # Remove first two digits (state fips)
-      counties_df <- counties_df %>%
-        mutate(county_code14 = str_sub(county_code14, 3))
-    }
-    counties_df[['county_code14']]
+get_sf_allstates <- function(contiguous_only = TRUE) {
+  states_ <- states(cb = TRUE, resolution = "20m")
+  
+  if (contiguous_only == TRUE) {
+    states_ <- states_ %>%
+      # Remove AK and HI; also PR and territories
+      filter(!STATEFP %in% c("02", "15", "72",  "60",  "66",  "69",  "78"))
+  } else {
+    states_ <- states_ %>%
+      # Remove PR and territories from data
+      filter(!STATEFP %in% c("72",  "60",  "66",  "69",  "78"))
   }
-
-# Get the list of counties that an urban area falls in (fully or partly)
-get_fips5_allcounties_fromurbanarea <-
-  function(urbanarea_name_regex) {
-    # urbanarea_name_regex should include state abbr (e.g. "Austin.*Tx")
-    counties_df <- counties_urbanarea_df %>%
-      filter(str_detect(ua_name12, urbanarea_name_regex)) %>%
-      select(county_code14)
-    
-    counties_df[['county_code14']]
-  }
-
+  states_
+}
 
 # =============================================
 # ACS and Decennial Census Data
 # =============================================
-
+#  ---------------------------------------------
+# States
+# ---------------------------------------------
 get_acsdata_allstates <- function(variables,
                                   survey = "acs5",
                                   year = latest_year,
                                   geometry = FALSE,
                                   shift_geo = FALSE,
                                   contiguous_only = TRUE) {
-  
   # Resolve contradictory argument values by overriding
   if (shift_geo == TRUE) {
     contiguous_only <-  FALSE
@@ -183,114 +214,11 @@ get_acsdata_allstates <- function(variables,
 }
 
 
-get_acsdata_alltracts_fromcounties <-
-  function(variables,
-           survey = "acs5",
-           year = latest_year,
-           counties_fips5,
-           geometry = FALSE) {
-    tracts_acs_list <- map(
-      counties_fips5,
-      ~
-        get_acs(
-          geography = "tract",
-          variables = variables,
-          survey = survey,
-          year = year,
-          # Expects 3-digit fips
-          county = str_sub(., start = 3),
-          # Get state fips: first 2 digits
-          state = str_sub(., end = 2),
-          geometry = geometry
-        )
-    )
-    
-    reduce(tracts_acs_list, rbind)
-    
-  }
-
-
-get_acsdata_alltracts_frommsa <-
-  function(msa_name_regex,
-           variables,
-           survey = "acs5",
-           year = latest_year,
-           geometry = FALSE) {
-    counties_fips5 <-
-      get_fips5_allcounties_frommsa(msa_name_regex = msa_name_regex, remove_state_fips = FALSE)
-    
-    acsdata_tracts_sf <-
-      get_acsdata_alltracts_fromcounties(
-        variables = variables,
-        survey = survey,
-        year = year,
-        counties_fips5 = counties_fips5,
-        geometry = geometry
-      )
-    acsdata_tracts_sf
-  }
-
-
-get_acsdata_allurbanareas <-
-  function(variables,
-           survey = "acs5",
-           no_urbanclusters = TRUE,
-           geometry = FALSE) {
-    
-    ua_acsdata <-
-      get_acs(geography = "urban area",
-              variables = variables,
-              survey = survey)
-    if (no_urbanclusters == TRUE) {
-      ua_acsdata <- ua_acsdata %>% 
-        filter(str_detect(NAME, "Urbanized Area"))
-    }
-    
-    if (geometry == TRUE) {
-      ua_sf <- urban_areas(cb = TRUE)
-      glimpse(ua_sf)
-      ua_acsdata <- ua_acsdata %>%
-        left_join(ua_sf, by = c("GEOID" = "GEOID10")) %>%
-        # Keep NAME10 as it's shorter, and drop NAME
-        select(-NAME) %>% 
-        st_as_sf()
-    }
-    ua_acsdata
-  }
-
-get_acsdata_alltracts_fromurbanarea <- function(urbanarea_name_regex,
-                                                variables,
-                                                survey = "acs5",
-                                                year = latest_year,
-                                                geometry = FALSE) {
-  counties_fips5 <-
-    get_fips5_allcounties_fromurbanarea(urbanarea_name_regex)
-  
-  acsdata_tracts <- get_acsdata_alltracts_fromcounties(
-    variables = variables,
-    survey = survey,
-    year = year,
-    counties_fips5 = counties_fips5,
-    geometry = geometry
-  )
-  
-  if (geometry == TRUE) {
-    urbanarea_sf <- urban_areas(cb = TRUE) %>% 
-      filter(str_detect(NAME10, urbanarea_name_regex))
-    
-    acsdata_tracts <- urbanarea_sf %>% 
-      st_join(acsdata_tracts, largest = FALSE)
-  }
-  
-  acsdata_tracts
-  
-}
-
 
 
 
 # ---------------------------------------------
-# Get MSA Socio-economicd Data from ACS
+# MSAs
 # ---------------------------------------------
 
 # M1 = Metropolita MSAs
@@ -302,7 +230,7 @@ get_acsdata_allmsas <- function(variables,
                                 year = latest_year,
                                 M1_only = TRUE,
                                 state = NULL,
-                                contiguous_only = TRUE, 
+                                contiguous_only = TRUE,
                                 geometry = FALSE) {
   msa <- "metropolitan statistical area/micropolitan statistical area"
   
@@ -341,8 +269,38 @@ get_acsdata_allmsas <- function(variables,
   acsdata_allmsas_df
 }
 
+#  ---------------------------------------------
+# Urban Areas
 # ---------------------------------------------
-# Get county socio-economic data from ACS
+get_acsdata_allurbanareas <-
+  function(variables,
+           survey = "acs5",
+           no_urbanclusters = TRUE,
+           geometry = FALSE) {
+    ua_acsdata <-
+      get_acs(geography = "urban area",
+              variables = variables,
+              survey = survey)
+    if (no_urbanclusters == TRUE) {
+      ua_acsdata <- ua_acsdata %>%
+        filter(str_detect(NAME, "Urbanized Area"))
+    }
+    
+    if (geometry == TRUE) {
+      ua_sf <- urban_areas(cb = TRUE)
+      glimpse(ua_sf)
+      ua_acsdata <- ua_acsdata %>%
+        left_join(ua_sf, by = c("GEOID" = "GEOID10")) %>%
+        # Keep NAME10 as it's shorter, and drop NAME
+        select(-NAME) %>%
+        st_as_sf()
+    }
+    ua_acsdata
+  }
+
+
+# ---------------------------------------------
+# Counties
 # ---------------------------------------------
 # Options: all us counties, single state's all counties, multiples states' all counties,
 # single state's multiple counties, single state's single county (state required in all cases)
@@ -368,65 +326,86 @@ get_acsdata_counties_fromstates <- function(variables,
     county = county,
     geometry = geometry
   ) %>%
-    filter(!str_detect(GEOID, geocode_pattern)) %>% 
+    filter(!str_detect(GEOID, geocode_pattern)) %>%
     mutate(NAME = str_remove(NAME, " County"))
 }
 
-# test; delete later
+#  ---------------------------------------------
+# Tracts
+# ---------------------------------------------
+get_acsdata_alltracts_fromcounties <-
+  function(variables,
+           survey = "acs5",
+           year = latest_year,
+           counties_fips5,
+           geometry = FALSE) {
+    tracts_acs_list <- map(
+      counties_fips5,
+      ~
+        get_acs(
+          geography = "tract",
+          variables = variables,
+          survey = survey,
+          year = year,
+          # Expects 3-digit fips
+          county = str_sub(., start = 3),
+          # Get state fips: first 2 digits
+          state = str_sub(., end = 2),
+          geometry = geometry
+        )
+    )
+    
+    reduce(tracts_acs_list, rbind)
+    
+  }
 
-# data("World", "metro", package = "tmap")
-# metro$growth <- (metro$pop2020 - metro$pop2010) / (metro$pop2010 * 10) * 100
-# tm_shape(World) +
-#   tm_polygons("income_grp", palette = "-Blues", 
-#               title = "Income class", contrast = 0.7, border.col = "grey30", id = "name") +
-#   tm_text("iso_a3", size = "AREA", col = "grey30", root = 3) +
-#   tm_shape(metro) +
-#   tm_bubbles("pop2010", col = "growth", border.col = "black",
-#              border.alpha = 0.5,
-#              breaks = c(-Inf, 0, 2, 4, 6, Inf) ,
-#              palette = "-RdYlGn",
-#              title.size = "Metro population (2010)", 
-#              title.col = "Annual growth rate (%)",
-#              id = "name",
-#              popup.vars = c("pop2010", "pop2020", "growth")) + 
-#   tm_style("gray") +
-#   tm_format("World", frame.lwd = 2)
-# 
-# tm_shape(metro) + 
-#   tm_bubbles(size = "pop2030") +
-#   tm_style("cobalt") +
-#   tm_format("World")
-# 
-# tm_shape(World) + tm_polygons(c("blue", "red")) + tm_layout(frame.lwd = 1.5)
-# 
-# data("land", "rivers", package = "tmap")
-# tm_shape(land) +
-#   tm_raster("elevation", breaks = c(-Inf, 250, 500, 1000, 1500, 2000, 2500, 3000, 4000, Inf),  
-#             palette = terrain.colors(9), title = "Elevation (m)") +
-#   tm_shape(rivers) + 
-#   tm_lines("lightblue", lwd = "strokelwd", scale = 1.5, legend.lwd.show = FALSE) +
-#   tm_shape(World, is.master = TRUE) +
-#   tm_borders("grey20", lwd = .5) +
-#   tm_grid(projection = "longlat", labels.size = 0.4, lwd = 0.25) +
-#   tm_text("name", size = "AREA") +
-#   tm_compass(position = c(0.08, 0.45), color.light = "grey90", size = 3) +
-#   tm_credits("Eckert IV projection", position = c("RIGHT", "BOTTOM")) +
-#   tm_style("classic",
-#            bg.color = "lightblue",
-#            space.color = "grey90",
-#            inner.margins = c(0.04, 0.04, 0.03, 0.02), 
-#            earth.boundary = TRUE) +
-#   tm_legend(position = c("left", "bottom"), 
-#             frame = TRUE,
-#             bg.color = "lightblue")
-# 
-# austin_ua_tr <-
-#   get_acsdata_alltracts_fromurbanarea("Charlottesville.*VA", variables = "B19301_001", geometry = TRUE)
-# 
-# tm_shape(austin_ua_tr) +
-#   tm_polygons(col = "estimate", alpha = 0.5, simplify = 0.05)
-# 
-# 
-# austin_ua_tr %>% 
-#   ggplot() +
-#   geom_sf(aes(fill = estimate))
+get_acsdata_alltracts_frommsa <-
+  function(msa_name_regex,
+           variables,
+           survey = "acs5",
+           year = latest_year,
+           geometry = FALSE) {
+    counties_fips5 <-
+      get_fips5_allcounties_frommsa(msa_name_regex = msa_name_regex, remove_state_fips = FALSE)
+    
+    acsdata_tracts_sf <-
+      get_acsdata_alltracts_fromcounties(
+        variables = variables,
+        survey = survey,
+        year = year,
+        counties_fips5 = counties_fips5,
+        geometry = geometry
+      )
+    acsdata_tracts_sf
+  }
+
+get_acsdata_alltracts_fromurbanarea <-
+  function(urbanarea_name_regex,
+           variables,
+           survey = "acs5",
+           year = latest_year,
+           geometry = FALSE) {
+    # First, get a list of counties which the urban area fully or partially overlap
+    counties_fips5 <-
+      get_fips5_allcounties_fromurbanarea(urbanarea_name_regex)
+    
+    # Second, get acs (with sf) data for tracts that are in only those counties
+    acsdata_tracts <- get_acsdata_alltracts_fromcounties(
+      variables = variables,
+      survey = survey,
+      year = year,
+      counties_fips5 = counties_fips5,
+      geometry = geometry
+    )
+    
+    if (geometry == TRUE) {
+      # Get all urban areas in the country. API doesn't allow selective download
+      urbanarea_sf <- urban_areas(cb = TRUE) %>%
+        filter(str_detect(NAME10, urbanarea_name_regex))
+      
+      acsdata_tracts <- urbanarea_sf %>%
+        st_intersection(acsdata_tracts)
+    }
+    
+    acsdata_tracts
+  }

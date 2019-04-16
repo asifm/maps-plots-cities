@@ -18,7 +18,7 @@
 # Initialize
 # =============================================
 # Loads tidyverse and other packages
-source(here::here('helpers/loadPackages.R'))
+source(here::here('helpers/setup.R'))
 
 library(entrydatar)
 # https://github.com/eloualiche/entrydatar

@@ -1,4 +1,4 @@
-source(here::here('helpers/loadPackages.R'))
+source(here::here('helpers/setup.R'))
 
 # data source: https://seer.cancer.gov/popdata/popdic.html
 # checked that data conforms with census bureau's intercensal data
