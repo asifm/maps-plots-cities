@@ -50,7 +50,7 @@ tufte_hugo_html <- function(..., margin_references = TRUE) {
 
   # make sure the existing post processor is called first in our new processor
   post_processor <- format$post_processor
-  format$post_processor <- function(metadata, input, output, clean, verbose) {
+  format$post_processor <- function(metadata, input, output, clean, verbose = TRUE) {
     if (is.function(post_processor)) {
       output <- post_processor(metadata, input, output, clean, verbose)
     }
@@ -98,7 +98,7 @@ tufte_hugo_html <- function(..., margin_references = TRUE) {
     for (i in grep(r, x)) {
       # the previous line should be <table> or <table class=...>
       if (!grepl("^<table( class=.+)?>$", x[i - 1])) next
-      cap <- gsub(r, "\\1", x[i])
+      cap <- gsub(r, "//1", x[i])
       x[i] <- x[i - 1]
       x[i - 1] <- paste0(
         "<p><!--\n<caption>-->", '<span class="marginnote shownote">',
@@ -191,6 +191,7 @@ tufte_html_page <- function(..., number_sections = FALSE, self_contained = FALSE
       number_sections = number_sections, theme = NULL,
       self_contained = self_contained, highlight = highlight,
       template = template %n% pkg_file("resources", "template-minimal.html")
+      # template = "C:/Users/mehedia/Documents/R/win-library/3.5/rmarkdown/rmd/h/default.html"
     )
   )
 }
@@ -214,7 +215,7 @@ build_rmds <- function(files) {
     if (!file.exists(shared_yml)) {
       return()
     }
-    if (file.exists(copy <- file.path(to, "_output.yml"))) {
+    if (file.exists(copy = file.path(to, "_output.yml"))) {
       return()
     }
     if (file.copy(shared_yml, copy)) {
@@ -247,6 +248,7 @@ build_rmds <- function(files) {
   }
 }
 rmds <- list_rmds("content")
+print("now build rmds")
 build_rmds(rmds)
 
 hugo_build()

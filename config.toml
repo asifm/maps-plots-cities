@@ -1,6 +1,7 @@
-baseurl = "https://citee-data.netlify.com/"
+baseurl = "/"
 languageCode = "en-us"
-title = "Maps, Plots, and Cities"
+title = "Maps, Plots, Cities"
+showtitle = true
 theme = "tuftesque"
 googleAnalytics = ""
 disqusShortname = ""
@@ -17,12 +18,12 @@ ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
     url = "https://github.com/asifm"
 
 [params]
-    description = "Data stories about cities and city people."
+    description = "Data stories about cities."
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.12.0"
     highlightjsCDN = "//cdnjs.cloudflare.com/ajax/libs"
-    highlightjsLang = ["r", "yaml"]
+    highlightjsLang = ["r", "yaml", "python"]
     highlightjsTheme = "github"
 
     # path to the favicon, under "static"
