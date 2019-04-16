@@ -1,0 +1,113 @@
+---
+title: "Cities: Small, Mid-Size, and Large"
+subtitle: "Identifying Population Parameters for Consistent Classification"
+author: "Asif Mehedi"
+date: '2019-03-12'
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+library(tufte)
+library(DT)
+
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/apiACS.R'))
+source(here::here("helpers/drawMaps.R"))
+
+knitr::opts_chunk$set(
+  # warning = FALSE,
+  # error = FALSE,
+  # message = FALSE,
+  echo = FALSE,
+  fig.width = 7,
+  fig.height = 7
+)
+```
+
+
+```{r var_lookup, include=FALSE, eval=FALSE}
+load_variables(year = 2017, dataset = "acs5/profile", cache = TRUE)
+lookup_variable(label_lookup = "total population", dataset = "acs5/profile")
+lookup_variable(code_lookup = "DP02_0086", dataset = "acs5/profile")
+```
+
+# Urbanized Areas
+
+'testing' "smartquotes"
+
+
+```{r pop_sf_data, include=FALSE, cache=TRUE}
+pop_urban_sf <- get_acsdata_allurbanareas(variables = "DP02_0086", geometry = TRUE)
+pop_urban <-st_set_geometry(pop_urban_sf, NULL) %>% 
+  select(NAME10, estimate) %>% 
+  filter(!str_detect(NAME10, ", PR"), !is.na(estimate)) %>% 
+  arrange(desc(estimate))
+```
+
+
+```{r pop_hist, include=FALSE, cache=TRUE, fig.width=5, fig.height=5}
+hchart(pop_urban$estimate, name = "Population in US Urbanized Areas (Excluding Those With Population Above 2M)") %>% 
+  hc_xAxis(max = 2000000)
+```
+
+```{r pop_table, cache=TRUE}
+datatable(data = pop_urban, colnames = c("Urbanized Area" = "NAME10", "Population" = "estimate")) %>% 
+  formatRound("Population", digits = 0)
+```
+
+# Metropolitan Statistical Areas
+
+```{r msa_pop_data}
+pop_msa_sf <- get_acsdata_allmsas(variables = "DP02_0086", geometry = TRUE)
+pop_msa <- st_set_geometry(pop_msa_sf, NULL) %>% 
+  select(NAME, estimate) %>% 
+  filter(!str_detect(NAME, ", PR"), !is.na(estimate)) %>% 
+  arrange(desc(estimate))
+```
+
+
+```{r msa_pop_hist, fig.cap=""}
+hchart(pop_msa$estimate, name = "Population in US Metropolitan Statistical Areas, 2017 (Large MSAs Excluded)") %>%
+  hc_xAxis(max = 2000000)
+```
+
+
+```{r pop_msa_cut}
+pop_msa$range = cut(pop_msa$estimate, 
+                    breaks = c(50000, 100000, 200000, 500000, 
+                               1000000, 2000000, 5000000, 10000000, 20000000),
+                    labels = c("50k to 100k", "100k to 200k", "200k to 500k", "500k to 1m", 
+                               "1m to 2m", "2m to 5m", "5m to 10m", "10m to 20m"))
+pop_msa_range <- pop_msa %>%
+  group_by(range) %>%
+  summarize(count = n())
+```
+
+
+```{r fig_pop_bracket, fig.cap=""}
+hchart(object = pop_msa_range %>% filter(!is.na(range)), 
+       type = "bar", mapping = hcaes(x = "range", y = "count"),
+       title = "Number of MSAs in Different Population Brackets")
+```
+
+
+```{r small_mid, fig.cap=""}
+small_mid <- pop_msa %>% 
+  select(NAME, estimate) %>% 
+  filter(estimate > 100000, estimate < 1000000) %>% 
+  arrange(desc(estimate))
+
+datatable(small_mid, colnames = c("MSA" = "NAME", "Population" = "estimate")) %>% 
+  formatRound(columns = "Population", digits = 0)
+```
+
+
+```{r message = FALSE, warning = FALSE, fig.dim=c(4,4)}
+oplot <- ggplot(Orange, aes(x = age, 
+                   y = circumference, 
+                   colour = Tree)) +
+  geom_point() +
+  geom_line() +
+  guides(colour = FALSE) +
+  theme_bw()
+oplot
+```

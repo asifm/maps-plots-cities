@@ -1,0 +1,26 @@
+---
+title: 'Entrenched Geographic Concentration of VC Investment'
+subtitle: "Awaiting the Rise of the Rest"
+author: "Asif Mehedi"
+date: '2019-04-12'
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(DT)
+
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/apiACS.R'))
+source(here::here("helpers/drawMaps.R"))
+
+knitr::opts_chunk$set(
+  # warning = FALSE,
+  # error = FALSE,
+  # message = FALSE,
+  echo = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+

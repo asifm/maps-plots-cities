@@ -1,0 +1,26 @@
+---
+title: "Investment in Science and Innovation (Part 2)"
+subtitle: "USPTO Patents: How US Cities Compare"
+author: "Asif Mehedi"
+date: '2019-03-25'
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(DT)
+
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/apiACS.R'))
+source(here::here("helpers/drawMaps.R"))
+
+knitr::opts_chunk$set(
+  # warning = FALSE,
+  # error = FALSE,
+  # message = FALSE,
+  echo = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+

@@ -1,0 +1,116 @@
+---
+title: "Oklahoma City: A Turnaround Story"
+subtitle: ""
+author: "Asif Mehedi"
+date: '2019-04-16'
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(DT)
+
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/apiACS.R'))
+source(here::here("helpers/drawMaps.R"))
+
+knitr::opts_chunk$set(
+  # warning = FALSE,
+  # error = FALSE,
+  # message = FALSE,
+  echo = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+```
+
+<!-- Zoomed in map of okc with chesapeak arena and boathouse district marked
+https://www.google.com/maps/dir/Chesapeake+Energy+Arena,+West+Reno+Avenue,+Oklahoma+City,+OK/Boathouse+District,+Oklahoma+City,+OK+73129/@35.461556,-97.5132016,14.7z/data=!4m14!4m13!1m5!1m1!1s0x87b217281cbe6d99:0xa5375eb4651d9445!2m2!1d-97.5151176!2d35.4634175!1m5!1m1!1s0x87b216e0b18b80b3:0x5ae4cbfea3d72789!2m2!1d-97.503568!2d35.4592023!3e2 -->
+
+
+
+
+```{r, eval=FALSE}
+source(here::here('helpers/setup.R'))
+
+# data source: https://seer.cancer.gov/popdata/popdic.html
+# checked that data conforms with census bureau's intercensal data
+# not clear which year's county definitions were used
+
+df <-
+  read_csv(
+    here::here("data_/readonly/us.1969_2017.19ages.adjusted.txt"),
+    col_names = "rawdata",
+    trim_ws = TRUE,
+  )
+df2 <- df %>%
+  mutate(
+    year = as.integer(str_sub(rawdata, 1, 4)),
+    state_abbr = str_sub(rawdata, 5, 6),
+    state_code = str_sub(rawdata, 7, 8),
+    county_3dcode = str_sub(rawdata, 9, 11),
+    county_5dcode = str_sub(rawdata, 7, 11),
+    race = str_sub(rawdata, 14, 14),
+    sex = str_sub(rawdata, 16, 16),
+    age_group = str_sub(rawdata, 17, 18),
+    population = as.integer(str_sub(rawdata, 19, 26))
+  )
+
+glimpse(df2)
+
+df3 <- df2 %>%
+  select(-rawdata) %>%
+  group_by(year, county_5dcode) %>%
+  summarise(pop = sum(population))
+
+glimpse(df3)
+
+plot_county_pop <-
+  function(location_df, location_name, caption = NULL) {
+    annot_data <- rbind(location_df[1,], tail(location_df, 1))
+    ggplot(location_df) +
+      theme_economist(base_family = "Open Sans", base_size = 9) +
+      geom_line(
+        aes(x = location_df[["year"]], y = location_df[["pop"]]),
+        size = 1,
+        color = "darkblue",
+        alpha = 0.4
+      ) +
+      geom_point(aes(x = location_df[["year"]], y = location_df[["pop"]]),
+                 color = "#003366",
+                 size = 3) +
+      geom_label(aes(
+        label = scales::comma(annot_data[["pop"]]),
+        x = annot_data[["year"]],
+        y = annot_data[["pop"]]), data = annot_data, nudge_x = c(0.5, -1),
+        vjust = 1.5, alpha = 0.5
+      ) +
+      scale_y_continuous(limits = c(0, NA),
+                         labels = scales::comma) +
+      theme(axis.title = element_blank()) +
+      labs(title = location_name,
+           subtitle = "Population, 1969–2017",
+           caption = caption)
+  }
+
+# wayne_df <-
+#   df3 %>% # Wayne county, MI (in Detroit urban area): 26163
+#   filter(county_5dcode == "26163")
+
+plot_county_pop(wayne_df, "Wayne County, MI") # Plot is consistent with Detroit's fate
+
+# cville_df <- df3 %>%
+#   filter(county_5dcode == "51540")
+
+plot_county_pop(
+  cville_df,
+  "Charlottesville City, VA",
+  "Charlottesville is an independent city. It's considered county equivalent for statistical purposes."
+) # What explains the sudden fall around 1980? Surprisingly consistent over decades.
+
+# TODO: Construct working age population column
+# TODO: Create an MSA dataframe
+
+
+
+```
+

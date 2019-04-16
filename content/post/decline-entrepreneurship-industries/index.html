@@ -1,0 +1,93 @@
+---
+title: "Decades-Long Decline in Entrepreneurial Dynamism (Part 2)"
+subtitle: "A Look at Differences Across Industries"
+author: "Asif Mehedi"
+date: 2019-04-02
+slug: "decline-entrepreneurship-cities"
+tags: [entrepreneurship, industries, longitudinal]
+---
+
+
+
+<div id="general-trends" class="section level1">
+<h1>General trends</h1>
+<pre><code>## Parsed with column specification:
+## cols(
+##   .default = col_double()
+## )</code></pre>
+<pre><code>## See spec(...) for full column specifications.</code></pre>
+<pre><code>## Warning: Removed 38 rows containing missing values (geom_col).</code></pre>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-3-1.png" width="768" /></p>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-4-1.png" width="768" /></p>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-5-1.png" width="768" /></p>
+<p>todo: normalize by population size</p>
+</div>
+<div id="industry-trends" class="section level1">
+<h1>Industry trends</h1>
+<div id="loading-data" class="section level2">
+<h2>Loading data</h2>
+<p>todo: add data
+- population for each msa for entire period, either actual or imputed. Get county populations, then roll them up to msa level.</p>
+<!-- todo: select the top 3 or 4 sic industries -->
+<pre><code>## Parsed with column specification:
+## cols(
+##   .default = col_double(),
+##   sic1 = col_character()
+## )</code></pre>
+<pre><code>## See spec(...) for full column specifications.</code></pre>
+</div>
+<div id="firms-by-industry" class="section level2">
+<h2>Firms by industry</h2>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-8-1.png" width="768" /></p>
+<pre><code>## # A tibble: 342 x 27
+##    year2 sic1   firms estabs    emp  denom estabs_entry estabs_entry_ra~
+##    &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;        &lt;dbl&gt;            &lt;dbl&gt;
+##  1  1977 07    3.59e4 3.70e4 2.76e5 2.54e5         7306             19.8
+##  2  1977 10    1.94e4 2.54e4 8.00e5 7.70e5         4347             17.5
+##  3  1977 15    3.83e5 3.89e5 3.40e6 3.30e6        81821             21.7
+##  4  1977 20    2.60e5 3.17e5 1.93e7 1.89e7        38800             12.4
+##  5  1977 40    1.21e5 1.63e5 4.30e6 4.11e6        24749             15.5
+##  6  1977 50    2.75e5 3.68e5 4.76e6 4.61e6        55677             15.4
+##  7  1977 52    9.40e5 1.24e6 1.36e7 1.32e7       231929             19  
+##  8  1977 60    2.98e5 3.88e5 4.52e6 4.40e6        49182             12.8
+##  9  1977 70    1.12e6 1.23e6 1.51e7 1.45e7       203938             17.1
+## 10  1978 07    3.70e4 3.80e4 2.59e5 2.67e5         7303             19.5
+## # ... with 332 more rows, and 19 more variables: estabs_exit &lt;dbl&gt;,
+## #   estabs_exit_rate &lt;dbl&gt;, job_creation &lt;dbl&gt;, job_creation_births &lt;dbl&gt;,
+## #   job_creation_continuers &lt;dbl&gt;, job_creation_rate_births &lt;dbl&gt;,
+## #   job_creation_rate &lt;dbl&gt;, job_destruction &lt;dbl&gt;,
+## #   job_destruction_deaths &lt;dbl&gt;, job_destruction_continuers &lt;dbl&gt;,
+## #   job_destruction_rate_deaths &lt;dbl&gt;, job_destruction_rate &lt;dbl&gt;,
+## #   net_job_creation &lt;dbl&gt;, net_job_creation_rate &lt;dbl&gt;,
+## #   reallocation_rate &lt;dbl&gt;, firmdeath_firms &lt;dbl&gt;,
+## #   firmdeath_estabs &lt;dbl&gt;, firmdeath_emp &lt;dbl&gt;, d_flag &lt;dbl&gt;</code></pre>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-9-1.png" width="768" /></p>
+</div>
+<div id="employment-by-industry" class="section level2">
+<h2>Employment by industry</h2>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-10-1.png" width="768" /></p>
+</div>
+<div id="job-destruction-by-industry" class="section level2">
+<h2>Job destruction by industry</h2>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-11-1.png" width="768" /></p>
+</div>
+<div id="job-creation-by-industry" class="section level2">
+<h2>Job creation by industry</h2>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-12-1.png" width="768" /></p>
+</div>
+<div id="net-job-creation-by-industry" class="section level2">
+<h2>Net job creation by industry</h2>
+<div id="service-industry" class="section level3">
+<h3>Service industry</h3>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-13-1.png" width="768" /></p>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-14-1.png" width="768" /></p>
+<p>The picture becomes most clear when we look at the rate of net job creation, defined as “…”.</p>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-15-1.png" width="768" /></p>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-16-1.png" width="768" /></p>
+</div>
+</div>
+<div id="firm-exits-by-industry" class="section level2">
+<h2>Firm exits by industry</h2>
+<p><img src="/post/decline-entrepreneurship-industries/index_files/figure-html/unnamed-chunk-17-1.png" width="768" /></p>
+</div>
+</div>

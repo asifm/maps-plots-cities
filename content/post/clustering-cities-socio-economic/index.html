@@ -1,0 +1,426 @@
+---
+title: "Looking into the Diversity of US Cities (Part 1)"
+subtitle: "Clustering Based on Socio-Economic Characteristics"
+author: "Asif Mehedi"
+date: '2019-04-03'
+slug: clustering-cities-socioeconomic
+tags: [clustering, cities, socio-economic]
+---
+
+
+
+<pre class="r"><code># Python path needs to be established before doing anything else. (Not cleary why— something about an R session not being able to have more than one Python instance.)
+library(reticulate)
+conda_list()</code></pre>
+<pre><code>##       name
+## 1 MINICO~1
+## 2     ds37
+## 3     ml37
+## 4     py27
+## 5 scrape37
+##                                                                                  python
+## 1                 C:\\Users\\mehedia\\AppData\\Local\\Continuum\\miniconda3\\python.exe
+## 2     C:\\Users\\mehedia\\AppData\\Local\\Continuum\\miniconda3\\envs\\ds37\\python.exe
+## 3     C:\\Users\\mehedia\\AppData\\Local\\Continuum\\miniconda3\\envs\\ml37\\python.exe
+## 4     C:\\Users\\mehedia\\AppData\\Local\\Continuum\\miniconda3\\envs\\py27\\python.exe
+## 5 C:\\Users\\mehedia\\AppData\\Local\\Continuum\\miniconda3\\envs\\scrape37\\python.exe</code></pre>
+<pre class="r"><code>use_python(
+  python = &quot;C:/Users/mehedia/AppData/Local/Continuum/miniconda3/envs/ds37/python.exe&quot;, 
+  required = TRUE)
+
+# check if correct env
+py_config()</code></pre>
+<pre><code>## python:         C:/Users/mehedia/AppData/Local/Continuum/miniconda3/envs/ds37/python.exe
+## libpython:      C:/Users/mehedia/AppData/Local/Continuum/miniconda3/envs/ds37/python37.dll
+## pythonhome:     C:\Users\mehedia\AppData\Local\CONTIN~1\MINICO~1\envs\ds37
+## version:        3.7.1 | packaged by conda-forge | (default, Mar 13 2019, 13:32:59) [MSC v.1900 64 bit (AMD64)]
+## Architecture:   64bit
+## numpy:          C:\Users\mehedia\AppData\Local\CONTIN~1\MINICO~1\envs\ds37\lib\site-packages\numpy
+## numpy_version:  1.16.2
+## 
+## NOTE: Python version was forced by use_python function</code></pre>
+<p>How wide runs the gamut of socio-economic differences between US cities? In what ways are larger cities different from smaller ones (ignoring ignoring population size)? Or, how big is the contrast between Silicon Valley and the cities in the rest of the country? Questions like these can be answered if we can quantify “socioeconomic differences” between cities.</p>
+<p>In the analysis that follows, I’ll attempt to do so, with the eventual goal of clustering the cities based on similarity.</p>
+<div id="why-clustering" class="section level2">
+<h2>Why Clustering?</h2>
+</div>
+<div id="the-data" class="section level1">
+<h1>The Data</h1>
+<p>The data from the most recent (2013–17) version of <em>American Community Survey</em> (ACS), a program of the Census Bureau to collect the most comprehensive socioeconomic data about US residents.^<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> The selected data comprises 382 observations, each a metropolitan statistical area^quantify differences between and across US metropolitan statistical areas (MSAs),<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a>, and about 180 variables, <a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a> covering a range of attributes of each MSA’s residents.The broad categories are:</p>
+<ul>
+<li>Income, inequality, poverty</li>
+<li>Educational attainment</li>
+<li>Employment status, types of occupation</li>
+<li>Housing characteristics</li>
+<li>Immigration (both from other parts of the country and from abroad)</li>
+<li>Race/ethnicity, age, marital status</li>
+</ul>
+<p><label for="tufte-mn-" class="margin-toggle">⊕</label><input type="checkbox" id="tufte-mn-" class="margin-toggle"><span class="marginnote">Anyone looking at the complete list would note that I’ve not been particularly selective. That is because <em>Principal Component Analysis</em> (PCA), soon to be performed on the data, will take care of the redundant and non-discriminant variables, doing so in a much more methodical way than human judgement can do at this stage.</span></p>
+<!-- <label for="tufte-mn-" class="margin-toggle">&#8853;</label><input type="checkbox" id="tufte-mn-" class="margin-toggle"><span class="marginnote">If you'd rather skip the commentary and go straight to the clusters, here they are (Excel file).</span> -->
+<div id="minimizing-variability" class="section level2">
+<h2>Minimizing Variability</h2>
+<!-- The final clustering would depend on my initial selection of data. -->
+<!-- The inclusion or exclusion of one or more variables  -->
+</div>
+</div>
+<div id="finding-optimum-parameters" class="section level1">
+<h1>Finding Optimum Parameters</h1>
+<div id="principal-component-analysis-pca-how-many-components" class="section level2">
+<h2>Principal Component Analysis (PCA): How Many Components?</h2>
+<pre><code>## PCA(copy=True, iterated_power=&#39;auto&#39;, n_components=None, random_state=None,
+##   svd_solver=&#39;auto&#39;, tol=0.0, whiten=False)</code></pre>
+<pre><code>## [&lt;matplotlib.axis.XTick object at 0x0000000050A41550&gt;, &lt;matplotlib.axis.XTick object at 0x000000004E698DA0&gt;, &lt;matplotlib.axis.XTick object at 0x000000004E698A90&gt;, &lt;matplotlib.axis.XTick object at 0x0000000050A6A9E8&gt;, &lt;matplotlib.axis.XTick object at 0x0000000050A6AE80&gt;, &lt;matplotlib.axis.XTick object at 0x000000005345B240&gt;, &lt;matplotlib.axis.XTick object at 0x000000005345B710&gt;, &lt;matplotlib.axis.XTick object at 0x000000005345BBE0&gt;, &lt;matplotlib.axis.XTick object at 0x0000000053464160&gt;]</code></pre>
+<p><img src="/post/clustering-cities-socio-economic/index_files/figure-html/unnamed-chunk-1-1.png" width="768" /></p>
+<p><img src="figures/pca_components_variance.png" /></p>
+</div>
+</div>
+<div id="the-model" class="section level1">
+<h1>The Model</h1>
+<div id="how-many-clusters" class="section level2">
+<h2>How Many Clusters?</h2>
+<p><img src="figures/kmeans_sil_scores_smoothed.png" /></p>
+<pre><code>## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=2, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=3, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=4, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=5, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=6, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=7, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=8, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=9, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=10, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=11, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=12, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=13, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=14, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=15, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=16, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=17, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=18, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=19, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=20, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=21, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=22, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=23, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=24, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=25, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=26, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=27, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=28, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=29, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=30, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=31, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=32, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=33, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=34, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=35, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=36, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=37, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=38, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=39, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=40, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=41, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=42, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=43, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=44, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=45, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=46, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=47, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=48, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=49, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=50, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=51, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=52, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=53, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=54, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=55, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=56, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=57, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=58, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=59, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=60, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=61, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=62, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=63, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=64, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=65, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=66, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=67, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=68, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=69, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=70, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=71, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=72, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=73, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=74, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=75, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=76, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=77, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=78, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=79, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=80, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=81, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=82, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=83, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=84, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=85, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=86, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=87, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=88, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=89, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=90, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=91, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=92, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=93, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=94, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=95, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=96, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=97, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=98, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)
+## KMeans(algorithm=&#39;auto&#39;, copy_x=True, init=&#39;k-means++&#39;, max_iter=300,
+##     n_clusters=99, n_init=10, n_jobs=None, precompute_distances=&#39;auto&#39;,
+##     random_state=None, tol=0.0001, verbose=0)</code></pre>
+<p><img src="figures/elbow_method.png" /></p>
+<p>I’ll leave the details of how this algorithm works. Suffice it say</p>
+</div>
+</div>
+<div id="the-clusters" class="section level1">
+<h1>The Clusters</h1>
+<pre><code>## Saving 6 x 5 in image</code></pre>
+</div>
+<div id="how-good-was-the-clustering" class="section level1">
+<h1>How Good Was the Clustering?</h1>
+<p>There are ways to measure how well the algorithm was able to divide the cities into distinct clusters.<br />
+<!-- The challenge -->
+<img src="/post/clustering-cities-socio-economic/index_files/figure-html/unnamed-chunk-3-1.png" width="576" /></p>
+<pre><code>## 10                              Ames, IA
+## 22                       Bakersfield, CA
+## 39                       Bloomington, IN
+## 47             Brownsville-Harlingen, TX
+## 127                           Fresno, CA
+## 156                Homosassa Springs, FL
+## 177          Kahului-Wailuku-Lahaina, HI
+## 195                           Laredo, TX
+## 221         McAllen-Edinburg-Mission, TX
+## 224                           Merced, CA
+## 247                New Haven-Milford, CT
+## 251    North Port-Sarasota-Bradenton, FL
+## 282                      Punta Gorda, FL
+## 320             Sebastian-Vero Beach, FL
+## 352                   Urban Honolulu, HI
+## 359              Visalia-Porterville, CA
+## Name: NAME, dtype: object</code></pre>
+<p>A silhoutte score of <code>python silhouette_score(df_pca, cluster_labels)</code></p>
+<pre><code>## -0.1 381
+## 0 333
+## 0.1 195
+## 0.2 75
+## 0.3 16
+## 0.4 5
+## 0.5 2</code></pre>
+<p><img src="figures/silhouette_samples.png" /></p>
+</div>
+<div id="r-librarytidyverse-librarygapminder-libraryhighcharter-datagapminder-package-gapminder-gp---gapminder-arrangedescyear-distinctcountry-.keep_all-true-gp2---gapminder-selectcountry-year-pop-nest-country-mutate-data-mapdata-mutate_mapping-hcaesx-year-y-pop-drop-true-data-mapdata-list_parse-renamettdata-data-gptot---left_joingp-gp2-by-country-hchart-gptot-point-hcaeslifeexp-gdppercap-name-country-size-pop-group-continent-hc_yaxistype-logarithmic-here-is-the-magic-inside-the-function-hc_tooltipusehtml-true-pointformatter-tooltip_chartaccesor-ttdata-hc_add_themehc_theme_flat" class="section level1">
+<h1><code>{r} # library(tidyverse) # library(gapminder) # library(highcharter) # data(gapminder, package = "gapminder") #  # gp &lt;- gapminder %&gt;% #   arrange(desc(year)) %&gt;% #   distinct(country, .keep_all = TRUE) #  # gp2 &lt;- gapminder %&gt;% #   select(country, year, pop) %&gt;%  #   nest(-country) %&gt;% #   mutate( #     data = map(data, mutate_mapping, hcaes(x = year, y = pop), drop = TRUE), #     data = map(data, list_parse) #     ) %&gt;% #   rename(ttdata = data) #  # gptot &lt;- left_join(gp, gp2, by = "country") #  # hchart( #   gptot, #   "point", #   hcaes(lifeExp, gdpPercap, name = country, size = pop, group = continent)) %&gt;% #   hc_yAxis(type = "logarithmic") %&gt;%  #   # here is the magic (inside the function) #   hc_tooltip(useHTML = TRUE, pointFormatter = tooltip_chart(accesor = "ttdata")) %&gt;%  #   hc_add_theme(hc_theme_flat())   #</code></h1>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Census Bureau releases, every year, two sets of data, one based on the previous year’s responses, collected from a sample of 1% of US population, and the other based on the accumulation of previous five years’ responses. The five-year version provides greater confidence in the data, with it having been estimated from a larger sample (5% of US population)<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>“[a] core area containing a substantial population nucleus, together with adjacent communities having a high degree of economic and social integration with that core.” See <a href="https://www.census.gov/programs-surveys/metro-micro/about.html">here</a> for more.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p>See the full list of variables in this <a href="https://www.dropbox.com/s/1d35pt8jymp770n/ACS5YR2017_ProfileVariables_Selected.xlsx?dl=0">Excel file</a>.<a href="#fnref3" class="footnote-back">↩</a></p></li>
+</ol>
+</div>

@@ -1,0 +1,29 @@
+---
+title: "Looking Into the Diversity of US Cities (Part 2)"
+subtitle: "Clustering Based on Firm Entry/Exit Trend"
+author: "Asif Mehedi"
+date: "2019-04-04"
+slug: ""
+tags: [longitudinal, firms, cities]
+---
+
+```{r setup, include=FALSE, cache=FALSE}
+library(tufte)
+library(DT)
+
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/apiACS.R'))
+source(here::here("helpers/drawMaps.R"))
+
+knitr::opts_chunk$set(
+  cache = TRUE,
+  # warning = FALSE,
+  # error = FALSE,
+  # message = FALSE,
+  echo = FALSE,
+  fig.width = 6,
+  fig.height = 6
+)
+```
+
+

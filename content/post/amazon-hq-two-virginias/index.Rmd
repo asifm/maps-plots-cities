@@ -1,0 +1,119 @@
+---
+title: "Amazon's HQ2 and the Tale of Two Virginias"
+subtitle: "Prosperity and Poverty in 133 Counties of Virginia"
+author: "Asif Mehedi"
+date: '2019-04-12'
+tags: [virginia, amazon, counties]
+slug: virginia-prosperity-poverty
+---
+
+```{r setup, include=FALSE}
+library(tufte)
+library(knitr)
+opts_chunk$set(
+  # warning = FALSE,
+  # error = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+library(DT)
+
+# https://api.census.gov/data/2017/acs/acs5/variables.html
+source(here::here('helpers/setup.R'))
+source(here::here('helpers/apiACS.R'))
+source(here::here("helpers/drawMaps.R"))
+```
+
+`r tufte::margin_note("*Source of data*: Unless noted otherwise, all data comes from the US Census Bureau's American Community Survey (ACS), 2013–17, 5-year edition. The statistics  are _estimates_ derived from survey responses.")`
+
+# Amazon HQ2
+
+TK Map zoomed in on the location. 
+TK Background story
+...
+
+# Prosperity, Poverty, and Inequality
+
+The median household income in Virginia counties^[More correctly, 95 counties and 38 independent cities. In Virginia, unlike other states, cities are separate from the territory of any county. For statistical purposes, the 38 independent cities are considered county-equivalent.] ranges from **$26,971 in Norton city**, located in the westernmost part of the state, to **$129,588 in Loudon county**, in Northern Virginia.
+
+
+```{r table_mhi}
+va_counties_medincome <-
+  get_acsdata_counties_fromstates(variables = "DP03_0062E", state = "VA") %>%
+  select(NAME, estimate) %>%
+  arrange(desc(estimate))
+
+datatable(
+  va_counties_medincome,
+  rownames = TRUE,
+  colnames = c("County", "Median Household Income")
+) %>%
+  formatRound(~estimate, digits = 0)
+
+```
+
+The map below lays out the disparity in plain view.
+
+
+```{r va_map_mhi, fig.cap="Median household income in Virginia counties."}
+
+draw_acsdata_counties_tracts_fromstate("county",
+                                       "DP03_0062E",
+                                       "Median Household Income",
+                                       "VA",
+                                       number_fmt = scales::comma)
+```
+
+
+```{r va-map-gini}
+draw_acsdata_counties_tracts_fromstate("county", "B19083_001", "Gini Coefficient", "VA")
+```
+
+
+```{r ca-map-gini, fig.margin = TRUE}
+draw_acsdata_counties_tracts_fromstate("county", "B19083_001", "Gini Coefficient", "CA")
+```
+
+The impoverished counties appear to be more inequal. Indeed, there is a moderate inverse correlation between income and inequality, as seen here:
+
+```{r, fig.width=4, }
+inequality_allcounties <- get_acs("county", variables = "B19083_001" )
+median_hh_income_allcounties <- get_acs("county", variables = "DP03_0062E")
+mean_hh_income_allcounties <- get_acs("county", variables = "DP03_0063")
+population_allcounties <- get_acs("county", variables = "B01001_001")
+
+ggplot(mapping = aes(x = median_hh_income_allcounties$estimate,
+                     y = inequality_allcounties$estimate)) +
+  geom_point(fill = "steelblue", color = "steelblue", alpha = 0.2)
+
+```
+
+Across all 3220 counties in the country, the correlation is -0.43, implying inequality is higher in lower income counties.
+
+# Zooming In
+
+# Cities
+
+Virginia is home to 11 metropolitan statistical areas (MSAs), including four that it shares with neighboring states.
+
+
+```{r, fig.cap=" "}
+va_msas <- get_msacode_fromregex("VA") %>%
+  select(msa_name15 , msa15_pop10) %>%
+  arrange(desc(msa15_pop10))
+
+datatable(
+  va_msas,
+  rownames = FALSE,
+  colnames = c("Name", "Population (2010)")) %>%
+  formatRound(~msa15_pop10, digits = 0)
+```
+
+
+
+```{r}
+
+```
+
