@@ -3,7 +3,7 @@ title: "Amazon's HQ2 and the Tale of Two Virginias"
 subtitle: "Prosperity and Poverty in 133 Counties of Virginia"
 author: "Asif Mehedi"
 date: '2019-04-12'
-tags: [virginia, amazon, counties]
+tags: [virginia, amazon]
 slug: virginia-prosperity-poverty
 ---
 
