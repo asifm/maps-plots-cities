@@ -1,4 +1,4 @@
-baseurl = "https://citee-data.netlify.com/"
+baseurl = "https://citee.netlify.com/"
 languageCode = "en-us"
 title = "Maps, Plots, Cities"
 showtitle = true
