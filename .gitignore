@@ -6,8 +6,6 @@
 public
 blogdown
 
-figures
-figure-html
 index_cache
 data_/output
 experiment.R
